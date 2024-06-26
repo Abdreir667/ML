@@ -8,6 +8,7 @@ import torch
 
 device='cuda'
 
+#https://tough-airmail-c2a.notion.site/IOAI-24-9d474249b60640ec880556e8597839d7?pvs=4
 class ImageData(Dataset):
     def __init__(self,labels_dir,img_dir,transform=None,target_transform=None):
         self.image_labels=pd.read_csv(labels_dir,dtype={0:str})
