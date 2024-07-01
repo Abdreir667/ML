@@ -15,8 +15,8 @@ transform=transforms.Compose([
 ])
 
 #768x768
-learningRate=1e-1
-momentum=0.9
+learningRate=1e-2
+momentum=0.7
 
 class ImageData(Dataset):
     def __init__(self,images_dir,transform=None,target_transform=None):
@@ -36,7 +36,7 @@ class ImageData(Dataset):
             label=0
         elif 'lungn' in file_name:
             label=1
-        elif 'lungssc' in file_name:
+        elif 'lungscc' in file_name:
             label=2
         if self.transform:
             image=self.transform(image)
@@ -66,6 +66,7 @@ class NeuralNetwork(nn.Module):
         self.fc1=nn.Linear(16*23*23,256)
         self.dropout=nn.Dropout(0.1)
         self.fc2=nn.Linear(256,3)
+        self.dropout2=nn.Dropout(0.5)
     
     def forward(self,x):
         x=self.pool(F.relu(self.bn1(self.conv1(x)))) #floor((768-3+2*0)/2)+1=383
@@ -77,6 +78,7 @@ class NeuralNetwork(nn.Module):
         x=F.relu(self.fc1(x))
         x=self.dropout(x)
         x=self.fc2(x)
+        x=self.dropout2(x)
         return x
         
 
@@ -90,7 +92,7 @@ DLoaderTest=DataLoader(test_dataset,batch_size=1)
 
 model=NeuralNetwork().to(device)
 loss_fn=nn.CrossEntropyLoss()
-optim=torch.optim.SGD(model.parameters(),learningRate,momentum,weight_decay=0.01)
+optim=torch.optim.SGD(model.parameters(),learningRate,momentum)
 
 def TrainLoop(dataloader,model,loss_fn,optim):
     model.train()
@@ -120,10 +122,9 @@ def TestLoop(dataloader,moddel,loss_fn):
             y_pred=probab.argmax(1)
             if y_pred==y:
                 correct+=1
-            print(probab)
+            print(f"{y_pred.item()}--{y}")
     
     print(correct*100/len(dataloader.dataset))
 
-for i in range(1,5):
-    TrainLoop(DLoaderTrain,model,loss_fn,optim)
+TrainLoop(DLoaderTrain,model,loss_fn,optim)
 TestLoop(DLoaderTest,model,loss_fn)
